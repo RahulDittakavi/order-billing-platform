@@ -2,13 +2,16 @@ package com.rahul.order_billing_platform.service;
 
 import com.rahul.order_billing_platform.entity.Inventory;
 import com.rahul.order_billing_platform.entity.Order;
+import com.rahul.order_billing_platform.event.OrderCreatedEvent;
 import com.rahul.order_billing_platform.exception.InsufficientInventoryException;
+import com.rahul.order_billing_platform.kafka.OrderEventProducer;
 import com.rahul.order_billing_platform.repository.InventoryRepository;
 import com.rahul.order_billing_platform.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.rahul.order_billing_platform.dto.OrderRequest;
 import com.rahul.order_billing_platform.dto.OrderResponse;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,7 +21,9 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final InventoryRepository inventoryRepository;
+    private final OrderEventProducer orderEventProducer;
 
+    @Transactional
     public OrderResponse createOrder(OrderRequest request) {
 
         Inventory inventory = inventoryRepository
@@ -41,6 +46,14 @@ public class OrderService {
         order.setStatus("CREATED");
 
         Order saved = orderRepository.save(order);
+        OrderCreatedEvent event = OrderCreatedEvent.builder()
+                .orderId(saved.getId())
+                .productName(saved.getProductName())
+                .quantity(saved.getQuantity())
+                .price(saved.getPrice())
+                .build();
+
+        orderEventProducer.sendOrderCreatedEvent(event);
 
         return mapToResponse(saved);
     }

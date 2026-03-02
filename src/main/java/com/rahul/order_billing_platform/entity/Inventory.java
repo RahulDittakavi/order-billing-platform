@@ -12,7 +12,9 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String productName;
+
 
     private Integer availableQuantity;
 }

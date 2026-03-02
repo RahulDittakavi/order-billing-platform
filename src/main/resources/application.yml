@@ -3,6 +3,12 @@ spring:
     url: jdbc:postgresql://localhost:5432/order_platform
     username: postgres
     password: root
+  
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
   jpa:
     hibernate:
@@ -14,3 +20,6 @@ spring:
 
 server:
   port: 8080
+
+
+ 
